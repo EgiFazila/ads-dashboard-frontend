@@ -96,14 +96,13 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
         </div>
       )}
       <div className="flex-fill">
-        <Button
-          iconName="download"
-          classType="primary me-3 mb-3"
-          label="Unduh Template"
-          onClick={() => {
-            window.open(`${API_LINK}MasterMataKuliah/DownloadTemplate`, "_blank");
-         }}
+        <a href="/template/ADS_MasterMataKuliah.xlsx" download>
+          <Button
+            iconName="download"
+            classType="primary me-3 mb-3"
+            label="Unduh Template"
           />
+        </a>
           <Button
             iconName="add"
             classType="success mb-3"

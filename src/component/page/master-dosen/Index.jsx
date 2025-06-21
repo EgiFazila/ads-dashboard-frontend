@@ -72,7 +72,7 @@ export default function MasterDosenIndex({ onChangePage }) {
         try {
           const data = await UseFetch(
           API_LINK + "MasterDosen/GetDataDosen",
-          currentFilter 
+          currentFilter
           );
 
           if (data === "ERROR"){
@@ -82,8 +82,8 @@ export default function MasterDosenIndex({ onChangePage }) {
           } else {
             const formattedData = data.map((value) => ({ 
                 ...value,
-                Aksi: ["Toggle", "Detail", "Edit"],
-                Alignment: ["center", "center", "left", "left", "center", "center"],
+                //Aksi: ["Toggle", "Detail", "Edit"],
+                Alignment: ["center", "center", "center"],
             }));
             setCurrentData(formattedData);
           }   
@@ -108,21 +108,20 @@ export default function MasterDosenIndex({ onChangePage }) {
           </div>
         )}
         <div className="flex-fill">
+          <a href="/template/ADS_MasterDosen.xlsx" download>
           <Button
               iconName="download"
               classType="primary me-3 mb-3"
               label="Unduh Template"
-              onClick={() => {
-                window.open(`${API_LINK}MasterDosen/DownloadTemplate`, "_blank");
-              }}
-            />
-            <Button
+          />
+          </a>
+          <Button
               iconName="file-import"
               classType="success mb-3"
               label="Import Excel"
               onClick={() => 
                 importModalRef.current.open()}
-            />
+          />
           <div className="input-group">
             <Input
               ref={searchQuery}

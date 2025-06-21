@@ -100,14 +100,13 @@ export default function MasterAlatIndex({ onChangePage }) {
         </div>
       )}
       <div className="flex-fill">
-        <Button
+        <a href="/template/ADS_MasterAlat.xlsx" download>
+          <Button
             iconName="download"
             classType="primary me-3 mb-3"
             label="Unduh Template"
-            onClick={() => {
-              window.open(`${API_LINK}MasterAlat/DownloadTemplate`, "_blank");
-                }}
           />
+        </a>
           <Button
             iconName="file-import"
             classType="success mb-3"

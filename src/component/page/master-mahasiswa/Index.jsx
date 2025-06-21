@@ -104,14 +104,13 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         </div>
       )}
       <div className="flex-fill">
-        <Button
+        <a href="/template/ADS_MasterMahasiswa.xlsx" download>
+          <Button
             iconName="download"
             classType="primary me-3 mb-3"
             label="Unduh Template"
-            onClick={() => {
-              window.open(`${API_LINK}MasterMahasiswa/DownloadTemplate`, "_blank");
-                }}
-          />  
+          />
+        </a> 
           <Button
             iconName="add"
             classType="success mb-3"
