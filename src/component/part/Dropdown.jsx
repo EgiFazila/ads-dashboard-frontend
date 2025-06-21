@@ -18,7 +18,7 @@ const DropDown = forwardRef(function DropDown(
 
   switch (type) {
     case "pilih":
-      placeholder = <option value="">{"-- Pilih " + label + " --"}</option>;
+      placeholder = <option value="">{"---- Pilih " + label + " ----"}</option>;
       break;
     case "semua":
       placeholder = <option value="">-- Semua --</option>;
@@ -45,6 +45,8 @@ const DropDown = forwardRef(function DropDown(
           className="form-select"
           id={forInput}
           name={forInput}
+          value={props.value}
+          onChange={props.onChange}
           ref={ref}
           disabled={isDisabled}
           {...props}

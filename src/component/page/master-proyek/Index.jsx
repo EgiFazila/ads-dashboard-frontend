@@ -15,21 +15,22 @@ const inisialisasiData = [
   {
     Key: null,
     No: null,
-    "Title": null,
-    "Customer Name": null,
-    "Company/Dept": null,
-    "Activity": null,
-    "Services": null,
+    "Id Proyek": null,
+    "Judul": null,
+    "Nama Pelanggan": null,
+    "Asal Instansi/Unit": null,
+    "Aktivitas": null,
+    "Layanan": null,
     "Status": null,
     Count: 0,
   },
 ];
 
 const dataFilterSort = [
-  { Value: "[Title] asc", Text: "Title [↑]" },
-  { Value: "[Title] desc", Text: "Title [↓]" },
-  { Value: "[Customer Name] asc", Text: "Customer Name [↑]" },
-  { Value: "[Customer Name] desc", Text: "Customer Name [↓]" },
+  { Value: "[Judul Proyek] asc", Text: "Judul Proyek [↑]" },
+  { Value: "[Judul Proyek] desc", Text: "Judul Proyek [↓]" },
+  { Value: "[Nama Pelanggan] asc", Text: "Nama Pelanggan [↑]" },
+  { Value: "[Nama Pelanggan] desc", Text: "Nama Pelanggan [↓]" },
 ];
 
 export default function MasterProyekIndex({ onChangePage }) {
@@ -39,7 +40,7 @@ export default function MasterProyekIndex({ onChangePage }) {
   const [currentFilter, setCurrentFilter] = useState({
     page: 1,
     query: "",
-    sort: "[Title] asc",
+    sort: "[Judul Proyek] asc",
   });
 
   const searchQuery = useRef();
@@ -59,7 +60,7 @@ export default function MasterProyekIndex({ onChangePage }) {
       ...prevFilter,
       page: 1,
       query: searchQuery.current?.value || "",
-      sort: searchFilterSort.current?.value || "[Title] asc",
+      sort: searchFilterSort.current?.value || "[Judul Proyek] asc",
     }));
   }
 
@@ -81,13 +82,14 @@ export default function MasterProyekIndex({ onChangePage }) {
             ...value,
             Aksi: ["Toggle", "Detail", "Edit"],
             Alignment: [
-              "center", // No
-              "left",   // Title
-              "left",   // Customer Name
-              "left",   // Company/Dept
-              "left",   // Activity
-              "left",   // Services
-              "center", // Status
+              "center",   // No
+              "center",   // Id Proyek
+              "center",   // Title
+              "center",   // Customer Name
+              "center",   // Company/Dept
+              "left",     // Activity
+              "center",   // Services
+              "center",   // Status
             ],
           }));
           setCurrentData(formattedData);
@@ -116,15 +118,15 @@ export default function MasterProyekIndex({ onChangePage }) {
         <Button
             iconName="add"
             classType="primary me-3 mb-3"
-            label="Industrial Service"
-            onClick={() => onChangePage("add")}
-          />
-          <Button
+            label="Layanan Industri"
+            onClick={() => onChangePage("add", { aktivitas: "Layanan Industri"})}
+        />
+        <Button
             iconName="add"
             classType="primary mb-3"
             label="Tridharma"
-            onClick={() => onChangePage("add")}
-          />
+            onClick={() => onChangePage("add", { aktivitas: "Tridharma"})}
+        />
         <div className="input-group">
           <Input
             ref={searchQuery}
@@ -144,7 +146,7 @@ export default function MasterProyekIndex({ onChangePage }) {
               label="Urut berdasarkan"
               type="none"
               data={dataFilterSort}
-              defaultValue="[Title] asc"
+              defaultValue="[Judul Proyek] asc"
             />
           </Filter>
         </div>
