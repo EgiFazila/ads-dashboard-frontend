@@ -11,6 +11,7 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Modal from "../../part/Modal";
 import Loading from "../../part/Loading";
+import XLSX from "xlsx";
 
 const inisialisasiData = [
   {
@@ -82,7 +83,7 @@ export default function MasterDosenIndex({ onChangePage }) {
           } else {
             const formattedData = data.map((value) => ({ 
                 ...value,
-                //Aksi: ["Toggle", "Detail", "Edit"],
+                //Aksi: ["Detail", "Hapus"],
                 Alignment: ["center", "center", "center"],
             }));
             setCurrentData(formattedData);
@@ -187,11 +188,37 @@ export default function MasterDosenIndex({ onChangePage }) {
             onClick={() => {
               const fileInput = document.getElementById("fileExcelDosen");
               const file = fileInput.files[0];
-              if (file) {
-                SweetAlert(`Berkas '${file.name}' berhasil diunggah!.`);
-              } else {
-                SweetAlert("Silakan pilih berkas Excel terlebih dahulu.");
+              if (!file) {
+                SweetAlert("Silahkan pilih berkas terlebih dahulu");
+                return;
               }
+              
+              const reader = new FileReader();
+              reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                try {
+                  const response = await UseFetch(API_LINK + "MasterDosen/Import", {
+                    method: "POST",
+                    headers: { "Content-type": "application/json" },
+                    body: JSON.stringify(jsonData),
+                  });
+
+                  if (!response.ok) throw new Error("Gagal mengunggah file");
+                  SweetAlert(`Berkas '${file.name}' berhasil diunggah dan disimpan.`);
+                  importModalRef.current.close();
+                  setIsLoading(true);
+                  setCurrentFilter({ ...currentFilter });
+                } catch (error){
+                  SweetAlert("Gagal mengunggah ke server.");
+                }
+              };
+
+              reader.readAsArrayBuffer(file);
             }}
           />
           </>

@@ -18,6 +18,7 @@ const inisialisasiData = [
     No: null,
     "NIM": null,
     "Nama Mahasiswa": null,
+    "Tingkat": null,
     Count: 0,
   },
 ];
@@ -77,8 +78,8 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         } else {
           const formattedData = data.map((value) => ({
             ...value,
-            Aksi: ["Toggle", "Detail", "Edit"],
-            Alignment: ["center", "center", "left", "left", "center", "center"],
+            Aksi: ["Detail", "Hapus"],
+            Alignment: ["right", "center", "center"],
           }));
           setCurrentData(formattedData);
         }

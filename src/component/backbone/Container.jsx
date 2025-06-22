@@ -5,8 +5,9 @@ export default function Container({ children }) {
   return (
     <div className="w-100 p-3"
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 80px)",
         overflowX: "hidden",
+        overflowY: "hidden",
         boxSizing: "border-box",
       }}>
       <ContentTitle />

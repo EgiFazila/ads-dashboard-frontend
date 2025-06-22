@@ -8,7 +8,7 @@ import UseFetch from "../util/UseFetch";
 import Icon from "../part/Icon";
 
 export default function Header({ displayName, roleName, handleShowMenu }) {
-  const [countNotifikasi, setCountNotifikasi] = useState("");
+  //const [countNotifikasi, setCountNotifikasi] = useState("");
 
   function handleGetLastLogin() {
     return formatDate(
@@ -16,6 +16,7 @@ export default function Header({ displayName, roleName, handleShowMenu }) {
     );
   }
 
+  /*
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,6 +37,7 @@ export default function Header({ displayName, roleName, handleShowMenu }) {
 
     fetchData();
   }, []);
+  */
 
   return (
     <div className="d-flex justify-content-between fixed-top border-bottom"

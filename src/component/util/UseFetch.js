@@ -12,7 +12,7 @@ const fetchData = async (url, param = {}, method = "POST") => {
     if (method === "POST") {
       let paramToSent = {
         ...param,
-        activeUser: activeUser === "" ? undefined : activeUser,
+        //activeUser: activeUser === "" ? undefined : activeUser,
       };
       response = await fetch(url, {
         method: "POST",
