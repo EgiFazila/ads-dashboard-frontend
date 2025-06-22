@@ -11,7 +11,7 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Modal from "../../part/Modal";
 import Loading from "../../part/Loading";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 const inisialisasiData = [
   {
@@ -202,7 +202,7 @@ export default function MasterDosenIndex({ onChangePage }) {
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
                 try {
-                  const response = await UseFetch(API_LINK + "MasterDosen/Import", {
+                  const response = await fetch(API_LINK + "MasterDosen/ImportDataDosen", {
                     method: "POST",
                     headers: { "Content-type": "application/json" },
                     body: JSON.stringify(jsonData),
