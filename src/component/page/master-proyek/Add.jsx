@@ -324,7 +324,6 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                             onChange={handleChange}
                             />
                         </div>
-                        
                     </div>
                 </fieldset>
 

@@ -138,7 +138,7 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
               forInput="ddUrut"
               label="Urut berdasarkan"
               type="none"
-              data={dataFilterSort}
+              arrData={dataFilterSort}
               defaultValue="[NIM] asc"
             />
           </Filter>

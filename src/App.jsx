@@ -5,10 +5,8 @@ import { decryptId } from "./component/util/Encryptor";
 import { BASE_ROUTE, ROOT_LINK } from "./component/util/Constants";
 import CreateMenu from "./component/util/CreateMenu";
 import CreateRoute from "./component/util/CreateRoute.jsx";
-
 import Container from "./component/backbone/Container";
 import Header from "./component/backbone/Header";
-
 import Login from "./component/page/login/Index";
 import Logout from "./component/page/logout/Index";
 import NotFound from "./component/page/not-found/Index";

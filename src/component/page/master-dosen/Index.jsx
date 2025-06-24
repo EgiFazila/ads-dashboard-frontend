@@ -16,10 +16,11 @@ import * as XLSX from "xlsx";
 const inisialisasiData = [
   {
     Key: null,
-    No: null,
+    //No: null,
     "NPK": null,
     "Nama Dosen": null,
     Count: 0,
+    Aksi: "",
   },
 ];
 
@@ -109,13 +110,23 @@ export default function MasterDosenIndex({ onChangePage }) {
           </div>
         )}
         <div className="flex-fill">
-          <a href="/template/ADS_MasterDosen.xlsx" download>
           <Button
-              iconName="download"
-              classType="primary me-3 mb-3"
-              label="Unduh Template"
+            iconName="download"
+            classType="primary me-3 mb-3"
+            label="Unduh Template"
+            onClick={() => {
+              // Download file secara manual
+              const link = document.createElement("a");
+              link.href = "/template/ADS_MasterDosen.xlsx";
+              link.download = "ADS_MasterDosen.xlsx";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              // Tampilkan SweetAlert
+              SweetAlert("Template berhasil diunduh!");
+            }}
           />
-          </a>
           <Button
               iconName="file-import"
               classType="success mb-3"
@@ -141,7 +152,7 @@ export default function MasterDosenIndex({ onChangePage }) {
                 forInput="ddUrut"
                 label="Urut berdasarkan"
                 type="none"
-                data={dataFilterSort}
+                arrData={dataFilterSort}
                 defaultValue="[NPK] asc"
               />
             </Filter>
@@ -193,13 +204,21 @@ export default function MasterDosenIndex({ onChangePage }) {
                 return;
               }
               
-              const reader = new FileReader();
+              /*const reader = new FileReader();
               reader.onload = async (e) => {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: "array" });
+                const workbook = XLSX.read(data, { type: "binary" });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                const jsonData = XLSX.utils.sheet_to_json(worksheet); */
+              
+              const reader = new FileReader();
+              reader.onload = async (e) => {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
 
                 try {
                   const response = await fetch(API_LINK + "MasterDosen/ImportDataDosen", {

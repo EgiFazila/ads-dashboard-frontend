@@ -8,6 +8,7 @@ const MasterAlat = lazy(() => import("../page/master-alat/Root"));
 const MasterMataKuliah = lazy(() => import("../page/master-matakuliah/Root"));
 const MasterProyek = lazy(() => import("../page/master-proyek/Root"));
 
+const Dashboard = lazy(() => import("../page/dashboard/Root"));
 
 const routeList = [
   {
@@ -37,6 +38,10 @@ const routeList = [
   {
     path: "/master_proyek",
     element: <MasterProyek />,
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
   },
 ];
 

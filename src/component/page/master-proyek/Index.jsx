@@ -40,7 +40,8 @@ export default function MasterProyekIndex({ onChangePage }) {
   const [currentFilter, setCurrentFilter] = useState({
     page: 1,
     query: "",
-    sort: "[Judul Proyek] asc",
+    sort: "Judul Proyek",
+    type: "asc",
   });
 
   const searchQuery = useRef();
