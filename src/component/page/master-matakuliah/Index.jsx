@@ -10,33 +10,42 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Modal from "../../part/Modal";
 import Loading from "../../part/Loading";
+import Cookies from "js-cookie";
+import { decryptId } from "../../util/Encryptor";
 
 const inisialisasiData = [
   {
     Key: null,
     No: null,
+    "Nama Mata Kuliah": null,
     "Semester": null,
-    "Mata Kuliah": null,
+    "SKS": null,
     Count: 0,
+    Aksi: "",
   },
 ];
 
-export default function MasterMataKuliahIndex({ onChangePage }) {
+const dataFilterSort = [
+  { Value: "[Nama Mata Kuliah] asc", Text: "[Nama Mata Kuliah] [↑]" },
+  { Value: "[Nama Mata Kuliah] desc", Text: "[Nama Mata Kuliah] [↓]" },
+  { Value: "[Semester] asc", Text: "[Semester] [↑]" },
+  { Value: "[Semester] desc", Text: "[Semester] [↓]" },
+];
+
+export default function MasterMataKuliahIndex({}) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(inisialisasiData);
-  const [semesterList, setSemesterList] = useState([]);
-  const [matkulList, setMatkulList] = useState([]);
   const [currentFilter, setCurrentFilter] = useState({
+    sort: "[Kode] asc",
     page: 1,
-    semester: "",
-    matkul: "",
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const searchQuery = useRef();
-  const searchSemester = useRef();
-  const searchMatkul = useRef();
+  const searchFilterSort = useRef();
   const importModalRef = useRef();
+  const fileInputRef = useRef();
 
   function handleSetCurrentPage(newCurrentPage) {
     setIsLoading(true);
@@ -51,8 +60,8 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
       page: 1,
-      semester: searchSemester.current.value,
-      matkul: searchMatkul.current.value,
+      query: searchQuery.current.value,
+      sort: searchFilterSort.current.value,
     }));
   }
 
@@ -70,10 +79,11 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
         } else if (data.length === 0) {
           setCurrentData(inisialisasiData);
         } else {
-          const formattedData = data.map((value) => ({
+          const formattedData = data.map((value, idx) => ({
             ...value,
-            Aksi: ["Toggle", "Detail", "Edit"],
-            Alignment: ["center", "left", "left", "center"],
+            Key: value.Kode || idx,
+            Aksi: ["Delete"],
+            Alignment: ["center", "center", "left", "center", "center", "center"],
           }));
           setCurrentData(formattedData);
         }
@@ -87,6 +97,39 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
     fetchData();
   }, [currentFilter]);
 
+  const handleDelete = async (rowData) => {
+    // Konfirmasi SweetAlert sebelum hapus
+    const confirm = await window.SweetAlert(
+    "Konfirmasi",
+    "Yakin ingin menghapus data ini?",
+    "warning",
+    true // true untuk menampilkan tombol konfirmasi/cancel
+  );
+  // Jika user tidak konfirmasi, batalkan
+  if (!confirm) return;
+
+    try {
+      const jwtToken = Cookies.get("jwtToken");
+      const response = await fetch(API_LINK + "MasterDosen/DeleteMataKuliah", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + jwtToken,
+        },
+        body: JSON.stringify({ Key: rowData.Key }),
+      });
+      if (!response.ok) {
+        const resText = await response.text();
+        throw new Error(resText);
+      }
+      SweetAlert("Sukses", "Data berhasil dihapus", "success");
+      setIsLoading(true);
+      setCurrentFilter({ ...currentFilter });
+    } catch (error) {
+      SweetAlert("Gagal", error.message, "error");
+    }
+  };
+
   return (
     <>
       <div className="d-flex flex-column">
@@ -94,20 +137,28 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
           <div className="flex-fill">
             <Alert
               type="warning"
-              message="Terjadi kesalahan: Gagal mengambil data semester/matkul."
+              message="Terjadi kesalahan: Gagal mengambil data mata kuliah."
             />
           </div>
         )}
         <div className="flex-fill">
-          <a href="/template/ADS_MasterMataKuliah.xlsx" download>
+          <Button
+            iconName="download"
+            classType="primary me-3 mb-3"
+            label="Unduh Template"
+            onClick={() => {
+              const link = document.createElement("a");
+              link.href = "/template/ADS_MasterMataKuliah.xlsx";
+              link.download = "ADS_MasterMataKuliah.xlsx";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              SweetAlert("Sukses", "Template berhasil diunduh!", "success");
+            }}
+          />
             <Button
-              iconName="download"
-              classType="primary me-3 mb-3"
-              label="Unduh Template"
-            />
-          </a>
-            <Button
-              iconName="add"
+              iconName="file-import"
               classType="success mb-3"
               label="Import Excel"
               onClick={() => 
@@ -127,19 +178,11 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
             />
             <Filter>
               <DropDown
-                ref={searchSemester}
-                forInput="ddSemester"
-                label="Semester"
-                type="semua"
-                arrData={semesterList}
-                defaultValue="[Semester] asc"
-              />
-              <DropDown
-                ref={searchMatkul}
-                forInput="ddMatkul"
-                label="Mata Kuliah"
-                type="semua"
-                arrData={matkulList}
+                ref={searchFilterSort}
+                forInput="ddUrut"
+                label="Urut berdasarkan"
+                type="none"
+                arrData={dataFilterSort}
                 defaultValue="[Mata Kuliah] asc"
               />
             </Filter>
@@ -152,8 +195,7 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
             <div className="d-flex flex-column">
               <Table
                 data={currentData}
-                onDetail={onChangePage}
-                onEdit={onChangePage}
+                onDelete={handleDelete}
               />
               <Paging
                 pageSize={PAGE_SIZE}
@@ -176,18 +218,52 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
           <Button
             classType="danger me-2"
             label="Batal"
-            onClick={() => importModalRef.current.close()}
+            onClick={() => {
+              importModalRef.current.close();
+              setSelectedFile(null);
+            }}
           />
           <Button
             classType="primary me-2"
             label="Konfirmasi"
-            onClick={() => {
-              const fileInput = document.getElementById("fileExcelMataKuliah");
-              const file = fileInput.files[0];
-              if (file) {
-                SweetAlert(`Berkas '${file.name}' berhasil diunggah!.`);
-              } else {
-                SweetAlert("Silakan pilih berkas Excel terlebih dahulu.");
+            onClick={ async () => {
+              if (!selectedFile) {
+                SweetAlert("Silahkan pilih berkas terlebih dahulu");
+                return;
+              }
+              
+              try {
+                const jwtToken = Cookies.get("jwtToken");
+                const userCookie = Cookies.get("activeUser");
+                if (!userCookie) throw new Error("User belum login");
+
+                const username = JSON.parse(decryptId(userCookie)).username;
+
+                const formData = new FormData();
+                formData.append("File", selectedFile);
+                formData.append("UserName", username);
+
+                const response = await fetch(API_LINK + "MasterDosen/ImportExcelMataKuliah", {
+                  method: "POST",
+                  headers: {
+                    Authorization: "Bearer " + jwtToken,
+                  },
+                  body: formData,
+                });
+
+                if (!response.ok) {
+                  const resText = await response.text();
+                  throw new Error(`Upload gagal: ${resText}`);
+                }
+
+                SweetAlert("Sukses", `Berkas berhasil diunggah dan disimpan.`, "success");
+                importModalRef.current.close();
+                setSelectedFile(null);
+                setIsLoading(true);
+                setCurrentFilter({ ...currentFilter });
+
+              } catch (error) {
+                SweetAlert("Gagal", error.message, "error");
               }
             }}
           />
@@ -200,9 +276,20 @@ export default function MasterMataKuliahIndex({ onChangePage }) {
           <input 
             type="file" 
             className="form-control" 
-            id="fileExcelMataKuliah" 
-            accept=".xlsx, .xls" 
+            accept=".xlsx, .xls"
+            ref={fileInputRef}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                setSelectedFile(file);
+              }
+            }} 
           />
+
+          {selectedFile && (
+            <p className="small text-success mt-2">Dipilih : {selectedFile.name}</p>
+          )} 
+
           <p style={{ fontSize: "0.75rem", color: "red" }} className="mt-2">
             Berkas yang akan di terima adalah berkas yang diunggah terakhir. Jika mengimport ulang, berkas sebelumnya akan digantikan dan tidak diproses.        
           </p>

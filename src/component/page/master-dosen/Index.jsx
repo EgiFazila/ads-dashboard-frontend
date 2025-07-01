@@ -11,12 +11,13 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Modal from "../../part/Modal";
 import Loading from "../../part/Loading";
-import * as XLSX from "xlsx";
+import Cookies from "js-cookie";
+import { decryptId } from "../../util/Encryptor";
 
 const inisialisasiData = [
   {
     Key: null,
-    //No: null,
+    No: null,
     "NPK": null,
     "Nama Dosen": null,
     Count: 0,
@@ -25,10 +26,10 @@ const inisialisasiData = [
 ];
 
 const dataFilterSort = [
-  { Value: "[NPK] asc", Text: "NPK [↑]" },
-  { Value: "[NPK] desc", Text: "NPK [↓]" },
-  { Value: "[Nama Dosen] asc", Text: "Nama Dosen [↑]" },
-  { Value: "[Nama Dosen] desc", Text: "Nama Dosen [↓]" },
+  { Value: "[NPK] asc", Text: "[NPK] [↑]" },
+  { Value: "[NPK] desc", Text: "[NPK] [↓]" },
+  { Value: "[Nama] asc", Text: "[Nama] [↑]" },
+  { Value: "[Nama] desc", Text: "[Nama] [↓]" },
 ];
 
 export default function MasterDosenIndex({ onChangePage }) {
@@ -36,14 +37,38 @@ export default function MasterDosenIndex({ onChangePage }) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(inisialisasiData);
   const [currentFilter, setCurrentFilter] = useState({
-    page: 1,
-    query: "",
     sort: "[NPK] asc",
+    page: 1,
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const searchQuery = useRef();
   const searchFilterSort = useRef();
   const importModalRef = useRef();
+  const fileInputRef = useRef();
+  
+  const handleDelete = async (rowData) => {
+    try {
+      const jwtToken = Cookies.get("jwtToken");
+      const response = await fetch(API_LINK + "MasterDosen/DeleteDosen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + jwtToken,
+        },
+        body: JSON.stringify({ NPK: rowData.NPK }),
+      });
+      if (!response.ok) {
+        const resText = await response.text();
+        throw new Error(resText);
+      }
+      SweetAlert("Sukses", "Data berhasil dihapus", "success");
+      setIsLoading(true);
+      setCurrentFilter({ ...currentFilter });
+    } catch (error) {
+      SweetAlert("Gagal", error.message, "error");
+    }
+  };
 
   function handleSetCurrentPage(newCurrentPage){
     setIsLoading(true);
@@ -82,10 +107,11 @@ export default function MasterDosenIndex({ onChangePage }) {
           } else if (data.length === 0){
             setCurrentData(inisialisasiData);
           } else {
-            const formattedData = data.map((value) => ({ 
+            const formattedData = data.map((value, idx) => ({ 
                 ...value,
-                //Aksi: ["Detail", "Hapus"],
-                Alignment: ["center", "center", "center"],
+                Key: value.NPK || idx,
+                Aksi: ["Delete"],
+                Alignment: ["center", "center", "center", "center"],
             }));
             setCurrentData(formattedData);
           }   
@@ -115,7 +141,6 @@ export default function MasterDosenIndex({ onChangePage }) {
             classType="primary me-3 mb-3"
             label="Unduh Template"
             onClick={() => {
-              // Download file secara manual
               const link = document.createElement("a");
               link.href = "/template/ADS_MasterDosen.xlsx";
               link.download = "ADS_MasterDosen.xlsx";
@@ -123,8 +148,7 @@ export default function MasterDosenIndex({ onChangePage }) {
               link.click();
               document.body.removeChild(link);
 
-              // Tampilkan SweetAlert
-              SweetAlert("Template berhasil diunduh!");
+              SweetAlert("Sukses", "Template berhasil diunduh!", "success");
             }}
           />
           <Button
@@ -167,8 +191,7 @@ export default function MasterDosenIndex({ onChangePage }) {
             <div className="d-flex flex-column">
               <Table
                 data={currentData}
-                onDetail={onChangePage}
-                onEdit={onChangePage}
+                onDelete={handleDelete}
               />
               <Paging
                 pageSize={PAGE_SIZE}
@@ -191,53 +214,53 @@ export default function MasterDosenIndex({ onChangePage }) {
           <Button
             classType="danger me-2"
             label="Batal"
-            onClick={() => importModalRef.current.close()}
+            onClick={() => {
+              importModalRef.current.close();
+              setSelectedFile(null);
+            }}
           />
           <Button
             classType="primary me-2"
             label="Konfirmasi"
-            onClick={() => {
-              const fileInput = document.getElementById("fileExcelDosen");
-              const file = fileInput.files[0];
-              if (!file) {
+            onClick={ async () => {
+              if (!selectedFile) {
                 SweetAlert("Silahkan pilih berkas terlebih dahulu");
                 return;
               }
               
-              /*const reader = new FileReader();
-              reader.onload = async (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: "binary" });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet); */
-              
-              const reader = new FileReader();
-              reader.onload = async (e) => {
-                const data = e.target.result;
-                const workbook = XLSX.read(data, { type: "array" });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet);
+              try {
+                const jwtToken = Cookies.get("jwtToken");
+                const userCookie = Cookies.get("activeUser");
+                if (!userCookie) throw new Error("User belum login");
 
-                try {
-                  const response = await fetch(API_LINK + "MasterDosen/ImportDataDosen", {
-                    method: "POST",
-                    headers: { "Content-type": "application/json" },
-                    body: JSON.stringify(jsonData),
-                  });
+                const username = JSON.parse(decryptId(userCookie)).username;
 
-                  if (!response.ok) throw new Error("Gagal mengunggah file");
-                  SweetAlert(`Berkas '${file.name}' berhasil diunggah dan disimpan.`);
-                  importModalRef.current.close();
-                  setIsLoading(true);
-                  setCurrentFilter({ ...currentFilter });
-                } catch (error){
-                  SweetAlert("Gagal mengunggah ke server.");
+                const formData = new FormData();
+                formData.append("File", selectedFile);
+                formData.append("UserName", username);
+
+                const response = await fetch(API_LINK + "MasterDosen/ImportExcelDosen", {
+                  method: "POST",
+                  headers: {
+                    Authorization: "Bearer " + jwtToken,
+                  },
+                  body: formData,
+                });
+
+                if (!response.ok) {
+                  const resText = await response.text();
+                  throw new Error(`Upload gagal: ${resText}`);
                 }
-              };
 
-              reader.readAsArrayBuffer(file);
+                SweetAlert("Sukses", `Berkas berhasil diunggah dan disimpan.`, "success");
+                importModalRef.current.close();
+                setSelectedFile(null);
+                setIsLoading(true);
+                setCurrentFilter({ ...currentFilter });
+
+              } catch (error) {
+                SweetAlert("Gagal", error.message, "error");
+              }
             }}
           />
           </>
@@ -245,13 +268,25 @@ export default function MasterDosenIndex({ onChangePage }) {
         >
           <p className="mb-2" style={{ fontSize: "0.8rem" }}>
             Berkas harus berformat .xlsx atau .xls dan mengikuti template yang telah disediakan.
-          </p>
+          </p> 
           <input 
             type="file" 
             className="form-control" 
             id="fileExcelDosen" 
-            accept=".xlsx, .xls" 
+            accept=".xlsx, .xls"
+            ref={fileInputRef}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                setSelectedFile(file);
+              }
+            }}
           />
+          
+          {selectedFile && (
+            <p className="small text-success mt-2">Dipilih : {selectedFile.name}</p>
+          )} 
+
           <p style={{ fontSize: "0.75rem", color: "red" }} className="mt-2">
             Berkas yang akan di terima adalah berkas yang diunggah terakhir. Jika mengimport ulang, berkas sebelumnya akan digantikan dan tidak diproses.
           </p>

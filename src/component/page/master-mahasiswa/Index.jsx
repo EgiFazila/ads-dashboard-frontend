@@ -11,6 +11,9 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Modal from "../../part/Modal";
 import Loading from "../../part/Loading";
+import Cookies from "js-cookie";
+import * as XLSX from "xlsx";
+import { decryptId } from "../../util/Encryptor";
 
 const inisialisasiData = [
   {
@@ -35,14 +38,38 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(inisialisasiData);
   const [currentFilter, setCurrentFilter] = useState({
-    page: 1,
-    query: "",
     sort: "[NIM] asc",
+    page: 1,
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const searchQuery = useRef();
   const searchFilterSort = useRef();
   const importModalRef = useRef();
+  const fileInputRef = useRef();
+
+  const handleDelete = async (rowData) => {
+    try {
+      const jwtToken = Cookies.get("jwtToken");
+      const response = await fetch(API_LINK + "MasterDosen/DeleteMahasiswa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + jwtToken,
+        },
+        body: JSON.stringify({ NIM: rowData.NIM }),
+      });
+      if (!response.ok) {
+        const resText = await response.text();
+        throw new Error(resText);
+      }
+      SweetAlert("Sukses", "Data berhasil dihapus", "success");
+      setIsLoading(true);
+      setCurrentFilter({ ...currentFilter });
+    } catch (error) {
+      SweetAlert("Gagal", error.message, "error");
+    }
+  };
 
   function handleSetCurrentPage(newCurrentPage) {
     setIsLoading(true);
@@ -76,10 +103,11 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         } else if (data.length === 0) {
           setCurrentData(inisialisasiData);
         } else {
-          const formattedData = data.map((value) => ({
+          const formattedData = data.map((value, idx) => ({
             ...value,
-            Aksi: ["Detail", "Hapus"],
-            Alignment: ["right", "center", "center"],
+            Key: value.NIM || idx,
+            Aksi: ["Delete"],
+            Alignment: ["center", "center" , "center", "center", "center"],
           }));
           setCurrentData(formattedData);
         }
@@ -105,22 +133,29 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         </div>
       )}
       <div className="flex-fill">
-        <a href="/template/ADS_MasterMahasiswa.xlsx" download>
-          <Button
-            iconName="download"
-            classType="primary me-3 mb-3"
-            label="Unduh Template"
-          />
-        </a> 
-          <Button
-            iconName="add"
-            classType="success mb-3"
-            label="Import Excel"
-            onClick={() => 
-              importModalRef.current.open()}
-          />
+        <Button
+          iconName="download"
+          classType="primary me-3 mb-3"
+          label="Unduh Template"
+          onClick={() => {
+            const link = document.createElement("a");
+            link.href = "/template/ADS_MasterMahasiswa.xlsx";
+            link.download = "ADS_MasterMahasiswa.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            SweetAlert("Sukses", "Template berhasil diunduh!", "success");
+          }}
+        /> 
+        <Button
+          iconName="file-import"
+          classType="success mb-3"
+          label="Import Excel"
+          onClick={() => 
+            importModalRef.current.open()}
+        />
         <div className="input-group">
-          
           <Input
             ref={searchQuery}
             forInput="pencarianMahasiswa"
@@ -153,8 +188,7 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
           <div className="d-flex flex-column">
             <Table
               data={currentData}
-              onDetail={onChangePage}
-              onEdit={onChangePage}
+              onDelete={handleDelete}
             />
             <Paging
               pageSize={PAGE_SIZE}
@@ -177,19 +211,53 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         <Button
           classType="danger me-2"
           label="Batal"
-          onClick={() => importModalRef.current.close()}
+          onClick={() => {
+            importModalRef.current.close();
+            setSelectedFile(null);
+          }}
         />
         <Button
           classType="primary me-2"
           label="Konfirmasi"
-          onClick={() => {
-            const fileInput = document.getElementById("fileExcelMahasiswa");
-            const file = fileInput.files[0];
-            if (file) {
-              SweetAlert(`Berkas '${file.name}' berhasil diunggah!.`);
-            } else {
-              SweetAlert("Silakan pilih berkas Excel terlebih dahulu.");
-            }
+          onClick={ async () => {
+            if (!selectedFile) {
+                SweetAlert("Silahkan pilih berkas terlebih dahulu");
+                return;
+              }
+              
+              try {
+                const jwtToken = Cookies.get("jwtToken");
+                const userCookie = Cookies.get("activeUser");
+                if (!userCookie) throw new Error("User belum login");
+
+                const username = JSON.parse(decryptId(userCookie)).username;
+
+                const formData = new FormData();
+                formData.append("File", selectedFile);
+                formData.append("UserName", username);
+
+                const response = await fetch(API_LINK + "MasterDosen/ImportExcelMahasiswa", {
+                  method: "POST",
+                  headers: {
+                    Authorization: "Bearer " + jwtToken,
+                  },
+                  body: formData,
+                });
+
+                if (!response.ok) {
+                  const resText = await response.text();
+                  throw new Error(`Upload gagal: ${resText}`);
+                }
+
+                SweetAlert("Sukses", `Berkas berhasil diunggah dan disimpan.`, "success");
+                importModalRef.current.close();
+                setSelectedFile(null);
+                setIsLoading(true);
+                setCurrentFilter({ ...currentFilter });
+
+              } catch (error) {
+                SweetAlert("Gagal", error.message, "error");
+              }
           }}
         />
         </>
@@ -201,9 +269,20 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
         <input 
           type="file" 
           className="form-control" 
-          id="fileExcelMahasiswa" 
-          accept=".xlsx, .xls" 
+          accept=".xlsx, .xls"
+          ref={fileInputRef}
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              setSelectedFile(file);
+            }
+          }}
         />
+
+        {selectedFile && (
+            <p className="small text-success mt-2">Dipilih : {selectedFile.name}</p>
+        )}
+
         <p style={{ fontSize: "0.75rem", color: "red" }} className="mt-2">
           Berkas yang akan di terima adalah berkas yang diunggah terakhir. Jika mengimport ulang, berkas sebelumnya akan digantikan dan tidak diproses.        
         </p>

@@ -14,15 +14,11 @@ export default function DashboardIndex() {
     }
 
     const cards = [
-    "Jumlah ADS Gabungan",
     "Persentase Ketercapaian ADS terhadap Matakuliah",
     "Presentase Proyek Internal VS External",
-    "Jumlah ADS dari Layanan Industri",
-    "Jumlah ADS dari Tri Dharma",
     "Jumlah Keikutsertaan Mahasiswa",
     "Jumlah ADS Setiap Bulan",
-    "Persentase Penggunaan Mesin dalam Pelaksanaan ADS",
-    "Project Status"
+    "Status Proyek"
   ];
 
   return (

@@ -68,7 +68,7 @@ export default function Table({
               type="Bold"
               cssClass="btn px-1 py-0 text-danger"
               title="Hapus"
-              onClick={() => onDelete(id)}
+              onClick={() => onDelete(rowData)}
             />
           );
         case "Detail":

@@ -39,9 +39,7 @@ export default function MasterProyekIndex({ onChangePage }) {
   const [currentData, setCurrentData] = useState(inisialisasiData);
   const [currentFilter, setCurrentFilter] = useState({
     page: 1,
-    query: "",
-    sort: "Judul Proyek",
-    type: "asc",
+    sort: "[Judul Proyek] asc",
   });
 
   const searchQuery = useRef();
@@ -60,8 +58,8 @@ export default function MasterProyekIndex({ onChangePage }) {
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
       page: 1,
-      query: searchQuery.current?.value || "",
-      sort: searchFilterSort.current?.value || "[Judul Proyek] asc",
+      query: searchQuery.current?.value,
+      sort: searchFilterSort.current?.value,
     }));
   }
 
@@ -81,14 +79,14 @@ export default function MasterProyekIndex({ onChangePage }) {
         } else {
           const formattedData = data.map((value) => ({
             ...value,
-            Aksi: ["Toggle", "Detail", "Edit"],
+            Aksi: ["Toggle", "Detail", "Delete"],
             Alignment: [
               "center",   // No
               "center",   // Id Proyek
               "center",   // Title
               "center",   // Customer Name
               "center",   // Company/Dept
-              "left",     // Activity
+              "center",   // Activity
               "center",   // Services
               "center",   // Status
             ],
