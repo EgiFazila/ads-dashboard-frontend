@@ -48,16 +48,24 @@ export default function MasterMahasiswaIndex({ onChangePage }) {
   const importModalRef = useRef();
   const fileInputRef = useRef();
 
-  const handleDelete = async (rowData) => {
+  const handleDelete = async (id) => {
+    const confirm = await SweetAlert(
+      "Konfirmasi",
+      "Yakin ingin menghapus data ini?",
+      "info",
+      "Ya, saya yakin"
+    );
+    if (!confirm) return;
+
     try {
       const jwtToken = Cookies.get("jwtToken");
-      const response = await fetch(API_LINK + "MasterDosen/DeleteMahasiswa", {
+      const response = await fetch(API_LINK + "MasterDosen/DeleteDataMahasiswa", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + jwtToken,
         },
-        body: JSON.stringify({ NIM: rowData.NIM }),
+        body: JSON.stringify({ NIM: id }),
       });
       if (!response.ok) {
         const resText = await response.text();

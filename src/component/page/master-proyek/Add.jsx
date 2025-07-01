@@ -15,14 +15,14 @@ import Icon from "../../part/Icon";
 import Cookies from "js-cookie";
 import SearchDropdown from "../../part/SearchDropdown";
 
-const inisialisasiData = [
-  {
-    Key: null,
-    No: null,
-    Name: null,
-    Count: 0,
-  },
-];
+// const inisialisasiData = [
+//   {
+//     Key: null,
+//     No: null,
+//     Name: null,
+//     Count: 0,
+//   },
+// ];
 
 export default function MasterProyekAdd({ onChangePage, aktivitas }) {
     const [errors, setErrors] = useState({});
@@ -31,7 +31,27 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
     const [aktivitasValue, setAktivitasValue] = useState("");
     const [listDosen, setListDosen] = useState([]);
     const [listMahasiswa, setListMahasiswa] = useState([]);
-    const [memberData, setMemberData] = useState(inisialisasiData);
+    const [memberData, setMemberData] = useState([]);
+    
+    const [selectedDosen, setSelectedDosen] = useState("");
+    const [selectedMahasiswa, setSelectedMahasiswa] = useState("");
+    
+    const layananOptions =
+      aktivitasValue === "Layanan Industri" 
+      ? [
+          { Value: "Pengujian", Text: "Pengujian" },
+          { Value: "Pelatihan", Text: "Pelatihan" },
+          { Value: "Konsultasi", Text: "Konsultasi" },
+          { Value: "Konstruksi", Text: "Konstruksi" },
+      ]
+      : aktivitasValue === "Tri Dharma"
+      ? [
+          { Value: "Prakerin", Text: "Prakerin" },
+          { Value: "Dosen Tamu", Text: "Dosen Tamu" },
+          { Value: "PKM Riset Industri", Text: "PKM Riset Industri" },
+          { Value: "Pertukaran", Text: "Pertukaran" },
+      ]
+      : [];
 
     const [formData, setFormData] = useState({
         proyekid: "",
@@ -133,6 +153,18 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
         fetchMahasiswa();
     }, []);
 
+    const handleAddMember = (selected) => {
+      if (memberData.some(m => m.Key === selected.Value)) return;
+      setMemberData(prev => [
+        ...prev,
+        {
+          Key: selected.Value,
+          Name: selected.Text,
+        }
+      ]);
+    };
+
+    /*
     const handleAddDosen = () => {
         const npk = dosenRef.current.dsn_npk;
         const selected = listDosen.find(d => d.Value === npk);
@@ -179,14 +211,11 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
         ]);
         mahasiswaRef.current.mhs_nim = "";
         mahasiswaRef.current.mhs_nama = "";
-    };
+    }; */
 
-    const handleDeleteMember = (index, type) => {
-      setMemberData(prev => {
-        const filtered = prev.filter((m, i) => !(i === index && m.type === type));
-        return filtered.map((m, idx) => 
-          m.type === type ? { ...m, No: idx + 1} : m);
-      });
+    const handleDeleteMember = (index) => {
+      setMemberData(prev => 
+        prev => prev.filter((_, i) => i !== index));
     };
 
     // Hapus dosen/mahasiswa dari tabel
@@ -309,7 +338,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                     <div className="row">
                         <div className="col-md-2">
                             <Input
-                            label="ID Proyek"
+                            label="Kode Proyek"
                             name="proyekid"
                             //value={formData.proyekid}
                             readOnly
@@ -380,12 +409,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                                 onChange={handleChange}
                                 error={errors.layanan}
                                 value={formData.layanan}
-                                arrData={[
-                                    { Value: "Pengujian", Text: "Pengujian" },
-                                    { Value: "Pelatihan", Text: "Pelatihan" },
-                                    { Value: "Konsultasi", Text: "Konsultasi" },
-                                    { Value: "Konstruksi", Text: "Konstruksi" },
-                                ]}
+                                arrData={layananOptions}
                             />
                         </div>
                         <div className="col-md-3">
@@ -431,7 +455,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                         <div className="flex-grow-1">
                           <SearchDropdown
                             forInput="dsn_npk"
-                            placeholder="Dosen"
+                            placeholder="Cari Dosen"
                             arrData={listDosen}
                             value={dosenRef.current.dsn_npk}
                             onChange={e => {
@@ -446,7 +470,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                           label="Tambah Dosen"
                           className="btn btn-success"
                           type="button"
-                          onClick={handleAddDosen}
+                          onClick={handleAddMember}
                         />
                       </div>
                       {memberData.filter(m => m.type === "dosen").length > 0 && (
@@ -485,7 +509,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                         <div className="flex-grow-1">
                           <SearchDropdown
                             forInput="mhs_nim"
-                            placeholder="Cari NIM Mahasiswa"
+                            placeholder="Cari Mahasiswa"
                             arrData={listMahasiswa}
                             value={mahasiswaRef.current.mhs_nim}
                             onChange={e => {
@@ -500,7 +524,7 @@ export default function MasterProyekAdd({ onChangePage, aktivitas }) {
                           label="Tambah Mahasiswa"
                           className="btn btn-success"
                           type="button"
-                          onClick={handleAddMahasiswa}
+                          onClick={handleAddMember}
                         />
                       </div>
                       {memberData.filter(m => m.type === "mahasiswa").length > 0 && (

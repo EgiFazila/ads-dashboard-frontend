@@ -17,9 +17,11 @@ const inisialisasiData = [
   {
     Key: null,
     No: null,
+    Kode: null,
     "Nama Mata Kuliah": null,
     "Semester": null,
     "SKS": null,
+    "Menit/Minggu": null,
     Count: 0,
     Aksi: "",
   },
@@ -83,7 +85,7 @@ export default function MasterMataKuliahIndex({}) {
             ...value,
             Key: value.Kode || idx,
             Aksi: ["Delete"],
-            Alignment: ["center", "center", "left", "center", "center", "center"],
+            Alignment: ["center", "center", "left", "center","center", "center", "center"],
           }));
           setCurrentData(formattedData);
         }
@@ -97,26 +99,24 @@ export default function MasterMataKuliahIndex({}) {
     fetchData();
   }, [currentFilter]);
 
-  const handleDelete = async (rowData) => {
-    // Konfirmasi SweetAlert sebelum hapus
-    const confirm = await window.SweetAlert(
+  const handleDelete = async (id) => {
+    const confirm = await SweetAlert(
     "Konfirmasi",
     "Yakin ingin menghapus data ini?",
-    "warning",
-    true // true untuk menampilkan tombol konfirmasi/cancel
+    "info",
+    "Ya, saya yakin"
   );
-  // Jika user tidak konfirmasi, batalkan
   if (!confirm) return;
 
     try {
       const jwtToken = Cookies.get("jwtToken");
-      const response = await fetch(API_LINK + "MasterDosen/DeleteMataKuliah", {
+      const response = await fetch(API_LINK + "MasterDosen/DeleteDataMataKuliah", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + jwtToken,
         },
-        body: JSON.stringify({ Key: rowData.Key }),
+        body: JSON.stringify({ Kode: id }),
       });
       if (!response.ok) {
         const resText = await response.text();

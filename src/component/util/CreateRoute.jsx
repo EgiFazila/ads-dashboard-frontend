@@ -1,3 +1,4 @@
+import { elements } from "chart.js";
 import { lazy } from "react";
 
 const Beranda = lazy(() => import("../page/beranda/Root"));
@@ -7,6 +8,7 @@ const MasterMahasiswa = lazy(() => import("../page/master-mahasiswa/Root"));
 const MasterAlat = lazy(() => import("../page/master-alat/Root"));
 const MasterMataKuliah = lazy(() => import("../page/master-matakuliah/Root"));
 const MasterProyek = lazy(() => import("../page/master-proyek/Root"));
+const MasterPeriode = lazy(() => import("../page/master-periode/Root"));
 
 const Dashboard = lazy(() => import("../page/dashboard/Root"));
 
@@ -38,6 +40,10 @@ const routeList = [
   {
     path: "/master_proyek",
     element: <MasterProyek />,
+  },
+  {
+    path: "/master_periode",
+    element: <MasterPeriode />
   },
   {
     path: "/dashboard",

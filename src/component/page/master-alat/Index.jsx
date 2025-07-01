@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PAGE_SIZE, API_LINK } from "../../util/Constants";
+import SweetAlert from "../../util/SweetAlert";
 import UseFetch from "../../util/UseFetch";
 import Button from "../../part/Button";
 import Input from "../../part/Input";
@@ -17,6 +18,7 @@ const inisialisasiData = [
   {
     Key: null,
     No: null,
+    Kode: null,
     "Nama Alat": null,
     "Area": null,
     Count: 0,
@@ -78,9 +80,10 @@ export default function MasterAlatIndex({ onChangePage }) {
         } else if (data.length === 0) {
           setCurrentData(inisialisasiData);
         } else {
-          const formattedData = data.map((value) => ({
+          const formattedData = data.map((value, idx) => ({
             ...value,
             Aksi: ["Delete"],
+            Key: value.Kode || idx,
             Alignment: ["center", "center", "center", "center", "center"],
           }));
           setCurrentData(formattedData);
@@ -95,25 +98,24 @@ export default function MasterAlatIndex({ onChangePage }) {
     fetchData();
   }, [currentFilter]);
 
-  const handleDelete = async (rowData) => {
-    // Konfirmasi SweetAlert sebelum hapus
-    const confirm = await window.SweetAlert(
+  const handleDelete = async (id) => {
+    const confirm = await SweetAlert(
       "Konfirmasi",
       "Yakin ingin menghapus data ini?",
-      "warning",
-      true // true untuk menampilkan tombol konfirmasi/cancel
+      "info",
+      "Ya saya yakin"
     );
     if (!confirm) return;
 
     try {
       const jwtToken = Cookies.get("jwtToken");
-      const response = await fetch(API_LINK + "MasterMataKuliah/DeleteAlat", {
+      const response = await fetch(API_LINK + "MasterAlat/DeleteDataAlat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + jwtToken,
         },
-        body: JSON.stringify({ Key: rowData.Key }),
+        body: JSON.stringify({ Kode: id }),
       });
       if (!response.ok) {
         const resText = await response.text();

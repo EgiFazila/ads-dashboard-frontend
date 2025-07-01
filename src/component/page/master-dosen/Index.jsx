@@ -47,16 +47,24 @@ export default function MasterDosenIndex({ onChangePage }) {
   const importModalRef = useRef();
   const fileInputRef = useRef();
   
-  const handleDelete = async (rowData) => {
+  const handleDelete = async (id) => {
+    const confirm = await SweetAlert(
+      "Konfirmasi",
+      "Apakah Anda Yakin ingin menghapus data ini?",
+      "info",
+      "Ya, saya yakin"
+    );
+    if (!confirm) return;
+
     try {
       const jwtToken = Cookies.get("jwtToken");
-      const response = await fetch(API_LINK + "MasterDosen/DeleteDosen", {
+      const response = await fetch(API_LINK + "MasterDosen/DeleteDataDosen", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + jwtToken,
         },
-        body: JSON.stringify({ NPK: rowData.NPK }),
+        body: JSON.stringify({ NPK: id }),
       });
       if (!response.ok) {
         const resText = await response.text();

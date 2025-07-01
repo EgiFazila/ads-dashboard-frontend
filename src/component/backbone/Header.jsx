@@ -83,6 +83,9 @@ export default function Header({ displayName, roleName, handleShowMenu }) {
             <li>
               <a className="dropdown-item" href={ROOT_LINK + "/master_alat"}>Alat</a>
             </li>
+            <li>
+              <a className="dropdown-item" href={ROOT_LINK + "/master_periode"}>Periode</a>
+            </li>
           </ul>
         </div>
 
